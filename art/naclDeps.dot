@@ -1,0 +1,228 @@
+
+digraph G {
+
+// Various constants
+// -----------------
+
+"K" [shape=box];
+"L" [shape=box];
+"iv" [shape=box];
+"minusp" [shape=box];
+"gf0" [shape=box];
+"gf1" [shape=box];
+"_121665" [shape=box];
+"_9" [shape=box];
+"_0" [shape=box];
+
+"crypto_hashblocks" -> "K";
+"modL" -> "L";
+"crypto_hash" -> "iv";
+"crypto_onetimeauth" -> "minusp";
+"scalarmult" -> "gf0";
+"scalarmult" -> "gf1";
+"unpackneg" -> "gf0";
+"unpackneg" -> "gf1";
+"scalarbase" -> "gf1";
+"crypto_scalarmult" -> "_121665";
+"crypto_scalarmult_base" -> "_9";
+"crypto_box_beforenm" -> "_0";
+
+// Major API functions
+// -------------------
+
+"crypto_sign_keypair" [color=blue,shape=invhouse];
+"crypto_sign" [color=blue,shape=invhouse];
+"crypto_sign_open" [color=blue,shape=invhouse];
+"crypto_secretbox" [color=blue,shape=invhouse];
+"crypto_secretbox_open" [color=blue,shape=invhouse];
+"crypto_verify_16" [color=blue,shape=invhouse];
+"crypto_verify_32" [color=blue,shape=invhouse];
+"crypto_stream" [color=blue,shape=invhouse];
+"crypto_stream_xor" [color=blue,shape=invhouse];
+"crypto_onetimeauth" [color=blue,shape=invhouse];
+"crypto_onetimeauth_verify" [color=blue,shape=invhouse];
+"crypto_hash" [color=blue,shape=invhouse];
+"crypto_scalarmult" [color=blue,shape=invhouse];
+"crypto_scalarmult_base" [color=blue,shape=invhouse];
+"crypto_box" [color=blue,shape=invhouse];
+"crypto_box_open" [color=blue,shape=invhouse];
+"crypto_box_keypair" [color=blue,shape=invhouse];
+"crypto_box_beforenm" [color=blue,shape=invhouse];
+"crypto_box_afternm" [color=blue,shape=invhouse];
+"crypto_box_open_afternm" [color=blue,shape=invhouse];
+
+// "crypto_auth" [color=blue,shape=invhouse];
+// "crypto_auth_verify" [color=blue,shape=invhouse];
+
+// Dependencies
+// ------------
+
+"crypto_secretbox" -> "crypto_stream_xor";
+"crypto_secretbox" -> "crypto_onetimeauth";
+
+"crypto_stream_xor" -> "crypto_core_hsalsa20";
+"crypto_stream_xor" -> "crypto_stream_salsa20_xor";
+
+"crypto_onetimeauth" -> "add1305";
+
+"crypto_core_hsalsa20" -> "core";
+
+"crypto_stream_salsa20_xor" -> "crypto_core_salsa20";
+
+// "add1305" -> CORE
+
+"core" -> "ld32";
+"core" -> "L32";
+"core" -> "st32";
+
+"crypto_core_salsa20" -> "core";
+
+"crypto_secretbox_open" -> "crypto_onetimeauth_verify";
+"crypto_secretbox_open" -> "crypto_stream";
+"crypto_secretbox_open" -> "crypto_stream_xor";
+
+"crypto_onetimeauth_verify" -> "crypto_onetimeauth";
+"crypto_onetimeauth_verify" -> "crypto_verify_16";
+
+"crypto_stream" -> "crypto_core_hsalsa20";
+"crypto_stream" -> "crypto_stream_salsa20";
+
+"crypto_verify_16" -> "vn";
+
+"crypto_stream_salsa20" -> "crypto_core_salsa20";
+
+// "vn" -> CORE
+
+
+"crypto_sign" -> "crypto_hash";
+"crypto_sign" -> "reduce";
+"crypto_sign" -> "scalarbase";
+"crypto_sign" -> "pack";
+"crypto_sign" -> "modL";
+
+"crypto_hash" -> "crypto_hashblocks";
+"crypto_hash" -> "ts64";
+
+"reduce" -> "modL";
+
+"scalarbase" -> "set25519";
+"scalarbase" -> "M";
+"scalarbase" -> "scalarmult";
+
+"pack" -> "inv25519";
+"pack" -> "M";
+"pack" -> "pack25519";
+"pack" -> "par25519";
+
+// "modL" -> CORE
+
+"crypto_hashblocks" -> "dl64";
+"crypto_hashblocks" -> "Sigma1";
+"crypto_hashblocks" -> "Sigma0";
+"crypto_hashblocks" -> "ts64";
+
+// "ts64" -> CORE
+
+// "set25519" -> CORE
+
+"M" -> "car25519";
+
+"scalarmult" -> "set25519";
+"scalarmult" -> "cswap";
+"scalarmult" -> "add";
+
+"inv25519" -> "S";
+"inv25519" -> "M";
+
+// "pack25519" -> CORE
+
+"par25519" -> "pack25519";
+
+// "dl64" -> CORE
+
+"Sigma1" -> "R";
+
+"Sigma0" -> "R";
+
+// "car25519" -> CORE
+
+"cswap" -> "sel25519";
+
+"add" -> "Z";
+"add" -> "M";
+"add" -> "A";
+
+"S" -> "M";
+
+// "R" -> CORE
+// "sel25519" -> CORE
+// "Z" -> CORE
+// "A" -> CORE
+
+"crypto_sign_open" -> "unpackneg";
+"crypto_sign_open" -> "crypto_hash";
+"crypto_sign_open" -> "reduce";
+"crypto_sign_open" -> "scalarmult";
+"crypto_sign_open" -> "scalarbase";
+"crypto_sign_open" -> "add";
+"crypto_sign_open" -> "pack";
+"crypto_sign_open" -> "crypto_verify_32";
+
+"unpackneg" -> "set25519";
+"unpackneg" -> "unpack25519";
+"unpackneg" -> "S";
+"unpackneg" -> "M";
+"unpackneg" -> "Z";
+"unpackneg" -> "A";
+"unpackneg" -> "pow2523";
+"unpackneg" -> "neq25519";
+"unpackneg" -> "par25519";
+
+"crypto_verify_32" -> "vn";
+
+// "unpack25519" -> CORE
+
+// "Z" -> CORE
+
+"pow2523" -> "S";
+"pow2523" -> "M";
+
+"neq25519" -> "pack25519";
+"neq25519" -> "crypto_verify_32";
+
+"crypto_sign_keypair" -> "randombytes";
+"crypto_sign_keypair" -> "crypto_hash";
+"crypto_sign_keypair" -> "scalarbase";
+"crypto_sign_keypair" -> "pack";
+
+// "randombytes" -> SYSTEM
+
+"crypto_scalarmult" ->
+"crypto_scalarmult" -> "unpack25519";
+"crypto_scalarmult" -> "sel25519";
+"crypto_scalarmult" -> "A";
+"crypto_scalarmult" -> "Z";
+"crypto_scalarmult" -> "S";
+"crypto_scalarmult" -> "M";
+"crypto_scalarmult" -> "inv25519";
+"crypto_scalarmult" -> "pack25519";
+
+"crypto_scalarmult_base" -> "crypto_scalarmult";
+
+"crypto_box" -> "crypto_box_beforenm";
+"crypto_box" -> "crypto_box_afternm";
+
+"crypto_box_open" -> "crypto_box_beforenm";
+"crypto_box_open" -> "crypto_box_open_afternm";
+
+"crypto_box_keypair" -> "randombytes";
+"crypto_box_keypair" -> "crypto_scalarmult_base";
+
+"crypto_box_beforenm" -> "crypto_scalarmult";
+"crypto_box_beforenm" -> "crypto_core_hsalsa20";
+
+"crypto_box_afternm" -> "crypto_secretbox";
+
+"crypto_box_open_afternm" -> "crypto_secretbox_open";
+
+}
