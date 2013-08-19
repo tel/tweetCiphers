@@ -68,7 +68,7 @@ int main(int _,char**v){
   ROUNDS;
 
   /* And this just prints out (x[4] XOR x[5]) and (x[6] XOR x[7]). Is
-     this the authentication? */
+     this the authentication? Decryption just ignores it. */
   LOOP(8) putchar(255&((x[4]^x[5])>>8*i)); 
   LOOP(8) putchar(255&((x[6]^x[7])>>8*i)); 
   return 0;
