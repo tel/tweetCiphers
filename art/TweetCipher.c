@@ -5,9 +5,10 @@
 #define R(v,n)(((v)<<(64-n))|((v)>>n)) 
 
 /* This forms the core of the random permutation function of the
-   sponge construction. I think it's supposed to be Salsa20, but we'll
-   check that later. In any case, `ROUNDS` is called every time the
-   permutation is to be performed in the sponge construction. */
+   sponge construction. I think it's supposed to be Salsa20. It looks
+   like it but uses a very different internal state. In any case,
+   `ROUNDS` is called every time the permutation is to be performed in
+   the sponge construction. */
 #define AXR(a,b,c,r) x[a]+=x[b];x[c]=R(x[c]^x[a],r); 
 #define G(a,b,c,d) {AXR(a,b,d,32) AXR(c,d,b,25) AXR(a,b,d,16) AXR(c,d,b,11)} 
 
@@ -63,12 +64,14 @@ int main(int _,char**v){
   }
 
   /* Truly no idea why this happens. Should it be a 10? It feels like
-     it's terminating the message on a 1. */
+     it's terminating the message on a 1. It may also just be the
+     definition of the authenticated tag. Why use this final XOR then?
+     Without it you could authenticate empty messages? */
   x[0]^=1;
   ROUNDS;
 
-  /* And this just prints out (x[4] XOR x[5]) and (x[6] XOR x[7]). Is
-     this the authentication? Decryption just ignores it. */
+  /* And this just prints out (x[4] XOR x[5]) and (x[6] XOR x[7]) as
+     an authenticated tag. */
   LOOP(8) putchar(255&((x[4]^x[5])>>8*i)); 
   LOOP(8) putchar(255&((x[6]^x[7])>>8*i)); 
   return 0;
