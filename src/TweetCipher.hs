@@ -40,7 +40,7 @@ loop n = forM_ [0..(pred n)]
 
 -- | #define R(v,n)(((v)<<(64-n))|((v)>>n))
 rf :: Bits a => a -> Int -> a
-rf v n = shiftL v (64 - n)  .|. shiftR v n
+rf = rotateR
 
 axrf :: M.IOVector Word64 -> Int -> Int -> Int -> Int -> IO ()
 axrf x a b c r = do xb <- M.read x b
