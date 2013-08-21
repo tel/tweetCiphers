@@ -26,10 +26,11 @@ module Salsa20 (
   SalsaStateV (..), SalsaState (..),
 
   -- * Salsa family
+  salsa20Stream,
   salsa20, salsa, coreDR, step, quarter,
 
   -- * Pure specification
-  salsa20Stream,
+  salsaPure20Stream,
   salsaPure20, salsaPure,
   quarterPure, rowPure, colPure, doublePure,
   corePure,
@@ -43,6 +44,7 @@ import Data.Word
 
 import Control.Lens
 import Control.Monad.Primitive
+import Control.Monad.ST
 import Control.Monad.Reader
 
 import Data.Monoid
@@ -309,10 +311,20 @@ instance Show SalsaState where
 
 -- | Generates the *entire* Salsa20 stream lazily. This repeats after
 -- 2^70 bytes, so *beware*.
+salsaPure20Stream :: Key -> Nonce -> SL.ByteString
+salsaPure20Stream k n = go 0 where
+  go :: Block -> SLI.ByteString
+  go b = continue (b + 1) $ runPut $ put $ salsaPure20 k n b
+  continue :: Block -> SLI.ByteString -> SLI.ByteString
+  continue b SLI.Empty          = go b
+  continue b (SLI.Chunk s rest) = SLI.Chunk s (continue b rest)
+
+-- | Generates the *entire* Salsa20 stream lazily. This repeats after
+-- 2^70 bytes, so *beware*.
 salsa20Stream :: Key -> Nonce -> SL.ByteString
 salsa20Stream k n = go 0 where
   go :: Block -> SLI.ByteString
-  go b = continue (b + 1) $ runPut $ put $ salsaPure20 k n b
+  go b = continue (b + 1) $ runPut $ put $ runST $ salsa20 k n b
   continue :: Block -> SLI.ByteString -> SLI.ByteString
   continue b SLI.Empty          = go b
   continue b (SLI.Chunk s rest) = SLI.Chunk s (continue b rest)
