@@ -1,4 +1,5 @@
 {-# OPTIONS -fno-warn-name-shadowing #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- Module      : Salsa20
 -- Copyright   : (c) Joseph Abrahamson 2013
