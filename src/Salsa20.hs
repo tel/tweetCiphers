@@ -23,8 +23,7 @@ module Salsa20 (
   -- * Core interface types
   Key (..), Nonce (..), Block (..),
   freshKey, freshNonce, nextNonce, nextBlock, 
-  SalsaState (..), salsaString,
-  SalsaStateV (..), salsaStringV,
+  SalsaStateV (..), SalsaState (..),
 
   -- * Salsa family
   salsa20, salsa, coreDR, step, quarter,
@@ -46,6 +45,7 @@ import Control.Monad.Primitive
 import Control.Monad.Reader
 
 import Data.Monoid
+import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put
 import qualified Data.ByteString               as S
@@ -181,8 +181,10 @@ instance Show SalsaStateV where
           n   = B.singleton '\n'
           i   = B.fromString "    "
 
-salsaStringV :: SalsaStateV -> SL.ByteString
-salsaStringV (SalsaStateV v) = runPut . sequence_ . map putWord32le . U.toList $ v
+instance Binary SalsaStateV where
+  put (SalsaStateV v) = sequence_ . map putWord32le . U.toList $ v
+  get = do vs <- replicateM 16 getWord32le
+           return $ SalsaStateV (U.fromList vs)
 
 data SalsaState =
   SalsaState {-# UNPACK #-} !Word32
@@ -205,6 +207,38 @@ data SalsaState =
              {-# UNPACK #-} !Word32
              {-# UNPACK #-} !Word32
   deriving (Eq, Ord)
+
+instance Binary SalsaState where
+  put (SalsaState a0  a1  a2  a3
+                  a4  a5  a6  a7
+                  a8  a9  a10 a11
+                  a12 a13 a14 a15 ) =
+    sequence_ [ putWord32le a0
+              , putWord32le a1
+              , putWord32le a2
+              , putWord32le a3
+                
+              , putWord32le a4
+              , putWord32le a5
+              , putWord32le a6
+              , putWord32le a7
+                
+              , putWord32le a8
+              , putWord32le a9
+              , putWord32le a10
+              , putWord32le a11
+                
+              , putWord32le a12
+              , putWord32le a13
+              , putWord32le a14
+              , putWord32le a15
+              ]
+    
+  get = do (a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:_) <- replicateM 16 getWord32le
+           return $ SalsaState a b c d
+                               e f g h
+                               i j k l
+                               m n o p
 
 instance Num SalsaState where
   (+) (SalsaState a0  a1  a2  a3
@@ -261,18 +295,6 @@ instance Show SalsaState where
           s   = B.fromString "   "
           n   = B.singleton '\n'
           i   = B.fromString "    "
-
-salsaString :: SalsaState -> SL.ByteString
-salsaString (SalsaState s0  s1  s2  s3
-                        s4  s5  s6  s7
-                        s8  s9  s10 s11
-                        s12 s13 s14 s15 ) =
-  (runPut . sequence_ . map putWord32le) vs where
-    vs = [ s0,  s1,  s2,  s3
-         , s4,  s5,  s6,  s7
-         , s8,  s9,  s10, s11
-         , s12, s13, s14, s15
-         ]
 
 -- k = Key   0x04030201 0x08070605 0x0c0b0a09 0x100f0e0d
 --           0x14131211 0x18171615 0x1c1b1a19 0x201f1e1d
