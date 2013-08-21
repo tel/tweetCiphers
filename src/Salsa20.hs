@@ -1,5 +1,35 @@
 
-module Salsa20 where
+-- |
+-- Module      : Salsa20
+-- Copyright   : (c) Joseph Abrahamson 2013
+-- License     : MIT
+-- 
+-- Maintainer  : me@jspha.com
+-- Stability   : experimental
+-- Portability : non-portable
+-- 
+-- **Don't even dare use this in production holy omg no. Don't even**
+-- **use the original TweetNaCl C code. Use the real NaCl. This is**
+-- **an art project.**
+--
+-- Salsa20 is the core primitive base of much of NaCl. This is a pure
+-- Haskell implementation based on the doubleround core at
+-- <<http://cr.yp.to/salsa20.html>>. It seems accurate against
+-- `doubleround/1` examples in the Snuffle Spec
+-- <<http://cr.yp.to/snuffle/spec.pdf>> but doesn't match the examples
+-- in <<http://cr.yp.to/snuffle/salsafamily-20071225.pdf>>.
+
+module Salsa20 (
+  -- * Core interface types
+  Key (..), Nonce (..), Block (..), SalsaState (..),
+  freshKey, freshNonce, nextNonce, nextBlock,
+
+  -- * Salsa family
+  salsa20, salsa, core,
+
+  -- * Utilities
+  AsWord64 (..)
+  ) where
 
 import Data.Bits
 import Data.Word
@@ -148,6 +178,13 @@ k = Key   0x04030201 0x08070605 0x0c0b0a09 0x100f0e0d
           0x14131211 0x18171615 0x1c1b1a19 0x201f1e1d
 n = Nonce 0x100f0e0d 0x3320646e
 b = Block 0x00000007 0x00000000
+
+
+-- Real Salsa begins here
+-------------------------
+
+salsa20 :: PrimMonad m => Key -> Nonce -> Block -> m SalsaState
+salsa20 = salsa 10 
 
 salsa :: PrimMonad m => Int -> Key -> Nonce -> Block -> m SalsaState
 salsa m (Key k1 k2 k3 k4 k5 k6 k7 k8) (Nonce n1 n2) (Block b1 b2) = do
