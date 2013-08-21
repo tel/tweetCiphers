@@ -1,4 +1,4 @@
-
+{-# OPTIONS -fno-warn-name-shadowing #-}
 -- |
 -- Module      : Salsa20
 -- Copyright   : (c) Joseph Abrahamson 2013
@@ -22,7 +22,7 @@
 module Salsa20 (
   -- * Core interface types
   Key (..), Nonce (..), Block (..), SalsaState (..),
-  freshKey, freshNonce, nextNonce, nextBlock,
+  freshKey, freshNonce, nextNonce, nextBlock, salsaString,
 
   -- * Salsa family
   salsa20, salsa, core,
@@ -37,10 +37,10 @@ import Data.Word
 import Control.Lens
 import Control.Monad.Primitive
 import Control.Monad.Reader
-import Control.Monad.Trans
 
 import Data.Monoid
 import Data.Binary.Get
+import Data.Binary.Put
 import qualified Data.ByteString               as S
 import qualified Data.ByteString.Lazy          as SL
 import qualified Data.Vector.Unboxed.Mutable   as M
@@ -95,8 +95,8 @@ instance AsWord64 Nonce where
   _Word64 = iso to fro where
     to (Nonce n1 n2) = (fromIntegral n1) + shiftL (fromIntegral n2) 32
     {-# INLINE to #-}
-    fro w = Nonce (fromIntegral (        w .&.             (2^32 - 1) )    )
-                  (fromIntegral (shiftR (w .&. (complement (2^32 - 1))) 32))
+    fro w = Nonce (fromIntegral (        w .&.             4294967295 )    )
+                  (fromIntegral (shiftR (w .&. (complement 4294967295)) 32))
     {-# INLINE fro #-}
   {-# INLINE _Word64 #-}
 
@@ -137,8 +137,8 @@ instance AsWord64 Block where
   _Word64 = iso to fro where
     to (Block b1 b2) = (fromIntegral b1) + shiftL (fromIntegral b2) 32
     {-# INLINE to #-}
-    fro w = Block (fromIntegral (        w .&.             (2^32 - 1) )    )
-                  (fromIntegral (shiftR (w .&. (complement (2^32 - 1))) 32))
+    fro w = Block (fromIntegral (        w .&.             4294967295 )    )
+                  (fromIntegral (shiftR (w .&. (complement 4294967295)) 32))
     {-# INLINE fro #-}
   {-# INLINE _Word64 #-}
 
@@ -174,10 +174,13 @@ instance Show SalsaState where
           n   = B.singleton '\n'
           i   = B.fromString "    "
 
-k = Key   0x04030201 0x08070605 0x0c0b0a09 0x100f0e0d
-          0x14131211 0x18171615 0x1c1b1a19 0x201f1e1d
-n = Nonce 0x100f0e0d 0x3320646e
-b = Block 0x00000007 0x00000000
+salsaString :: SalsaState -> SL.ByteString
+salsaString (SalsaState v) = runPut . sequence_ . map putWord32le . U.toList $ v
+
+-- k = Key   0x04030201 0x08070605 0x0c0b0a09 0x100f0e0d
+--           0x14131211 0x18171615 0x1c1b1a19 0x201f1e1d
+-- n = Nonce 0x100f0e0d 0x3320646e
+-- b = Block 0x00000007 0x00000000
 
 
 -- Real Salsa begins here
