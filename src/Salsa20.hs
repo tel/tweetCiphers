@@ -29,6 +29,7 @@ module Salsa20 (
   salsa20, salsa, coreDR, step, quarter,
 
   -- * Pure specification
+  salsa20Stream,
   salsaPure20, salsaPure,
   quarterPure, rowPure, colPure, doublePure,
   corePure,
@@ -50,6 +51,7 @@ import Data.Binary.Get
 import Data.Binary.Put
 import qualified Data.ByteString               as S
 import qualified Data.ByteString.Lazy          as SL
+import qualified Data.ByteString.Lazy.Internal as SLI
 import qualified Data.Vector.Unboxed.Mutable   as M
 import qualified Data.Vector.Unboxed           as U
 import qualified Data.Text.Lazy                as TL
@@ -304,6 +306,16 @@ instance Show SalsaState where
 
 -- Real Salsa begins here
 -------------------------
+
+-- | Generates the *entire* Salsa20 stream lazily. This repeats after
+-- 2^70 bytes, so *beware*.
+salsa20Stream :: Key -> Nonce -> SL.ByteString
+salsa20Stream k n = go 0 where
+  go :: Block -> SLI.ByteString
+  go b = continue (b + 1) $ runPut $ put $ salsaPure20 k n b
+  continue :: Block -> SLI.ByteString -> SLI.ByteString
+  continue b SLI.Empty          = go b
+  continue b (SLI.Chunk s rest) = SLI.Chunk s (continue b rest)
 
 salsa20 :: PrimMonad m => Key -> Nonce -> Block -> m SalsaStateV
 salsa20 = salsa 10 
