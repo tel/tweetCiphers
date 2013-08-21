@@ -65,6 +65,17 @@ import System.IO
 class AsWord64 a where
   _Word64 :: Iso' a Word64
 
+-- | The basic instance @Word64 == (Word32, Word32)@.
+instance AsWord64 (Word32, Word32) where
+  _Word64 = iso to fro where
+    to (b1, b2) = (fromIntegral b1) + shiftL (fromIntegral b2) 32
+    {-# INLINE to #-}
+    fro w = ( fromIntegral (        w .&.             4294967295 )
+            , fromIntegral (shiftR (w .&. (complement 4294967295)) 32)
+            )
+    {-# INLINE fro #-}
+  {-# INLINE _Word64 #-}
+
 -- | [*private*] The Salsa20 key
 data Key   = Key   {-# UNPACK #-} !Word32
                    {-# UNPACK #-} !Word32
@@ -103,11 +114,10 @@ data Nonce = Nonce {-# UNPACK #-} !Word32
                    {-# UNPACK #-} !Word32
 
 instance AsWord64 Nonce where
-  _Word64 = iso to fro where
-    to (Nonce n1 n2) = (fromIntegral n1) + shiftL (fromIntegral n2) 32
+  _Word64 = iso to fro . _Word64 where
+    to (Nonce n1 n2) = (n1, n2)
     {-# INLINE to #-}
-    fro w = Nonce (fromIntegral (        w .&.             4294967295 )    )
-                  (fromIntegral (shiftR (w .&. (complement 4294967295)) 32))
+    fro (n1, n2) = Nonce n1 n2
     {-# INLINE fro #-}
   {-# INLINE _Word64 #-}
 
@@ -145,11 +155,10 @@ nextBlock :: Block -> Block
 nextBlock (Block n1 n2) = Block (1 + n1) n2
 
 instance AsWord64 Block where
-  _Word64 = iso to fro where
-    to (Block b1 b2) = (fromIntegral b1) + shiftL (fromIntegral b2) 32
+  _Word64 = iso to fro . _Word64 where
+    to (Block b1 b2) = (b1, b2)
     {-# INLINE to #-}
-    fro w = Block (fromIntegral (        w .&.             4294967295 )    )
-                  (fromIntegral (shiftR (w .&. (complement 4294967295)) 32))
+    fro (b1, b2) = Block b1 b2
     {-# INLINE fro #-}
   {-# INLINE _Word64 #-}
 
