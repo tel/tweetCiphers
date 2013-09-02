@@ -18,24 +18,24 @@ import Control.Comonad
 
 import Data.Profunctor
 
-data L a b = forall x. L (x -> a -> x) x (x -> b)
+data L a b = forall x. L (x -> a -> x) (x -> b) x
 
 data P a b = P !a !b
 
-instance Functor (L a) where fmap f (L xax x xb) = L xax x (f . xb)
+instance Functor (L a) where fmap f (L xax xb x) = L xax (f . xb) x
 instance Applicative (L a) where
-  pure = L const () . const
-  L xax x xf <*> L yay y yb =
+  pure a = L const (const a) ()
+  L xax xf x <*> L yay yb y =
     L (\(P x y) a -> P (xax x a) (yay y a))
-      (P x y)
       (\(P x y) -> xf x (yb y))
+      (P x y)
 
 instance Comonad (L a) where
-  extract (L _ x xb) = xb x
-  duplicate (L xax x xb) = L xax x $ \x' -> L xax x' xb
+  extract (L _ xb x) = xb x
+  duplicate (L xax xb x) = L xax (\x' -> L xax xb x') x
 
 instance Profunctor L where
-  dimap f g (L xax x xb) = L (\x -> xax x . f) x (g . xb)
+  dimap f g (L xax xb x) = L (\x -> xax x . f) (g . xb) x
 
 instance Num b => Num (L a b) where
   (+) = liftA2 (+)

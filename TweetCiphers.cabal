@@ -35,6 +35,7 @@ library
     , profunctors
     , transformers
     , bytestring
+    , streams
     , vector
     , text
     , unix
