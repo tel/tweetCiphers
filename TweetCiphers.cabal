@@ -17,9 +17,10 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     
-    Salsa20L
-    NaCl
     Salsa20
+    L
+    NaCl
+    SalsaExp
     TweetCipher
   -- other-modules:       
   build-depends:       
