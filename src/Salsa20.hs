@@ -12,7 +12,7 @@
 -- 
 -- Implementation of Salsa20.
 
-module Salsa20 where
+module Salsa20 ( Salsa (..), salsaBytes, salsa20 ) where
 
 import Control.Applicative
 
@@ -24,9 +24,6 @@ import Data.AdditiveGroup
 import Data.Word
 import Data.Bits
 import Data.Bytes.Serial
-
-main :: IO ()
-main = print . salsa20 $ Salsa 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
 
 salsa20 :: Salsa -> Salsa
 salsa20 s = (s ^+^)
